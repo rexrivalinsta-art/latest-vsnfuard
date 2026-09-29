@@ -57,7 +57,12 @@ export function mountQuickQuality() {
     transition:background .15s ease,color .15s ease}
   #ns-quality button:hover{background:rgba(255,255,255,.09);color:#fff}
   #ns-quality button.ns-q-on{background:${accent};color:#0a0e14;box-shadow:0 0 0 1px ${accent}}
-  @media (max-width:560px),(pointer:coarse){#ns-quality{top:8px;right:8px;padding:5px;gap:2px}
+  @media (max-width:860px),(pointer:coarse){
+    /* On phones the shell collapses to a TOP nav rail, so a top-right overlay
+       would sit on top of the navigation and eat taps. Dock to the bottom-right
+       instead — the only thing down there is the transient toast. */
+    #ns-quality{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);
+      right:calc(env(safe-area-inset-right,0px) + 10px);padding:5px;gap:2px}
     #ns-quality button{padding:9px 11px;min-height:42px;font-size:12px}
     #ns-quality .ns-q-label{display:none}}
   `;
