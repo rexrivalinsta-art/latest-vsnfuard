@@ -86,6 +86,10 @@ export class PerfHud {
     this.phaseNode = el('div', 'ow-perf-line', this.body, '');
     this.countNode = el('div', 'ow-perf-line', this.body, '');
     this.hitchNode = el('div', 'ow-perf-line', this.body, '');
+    // Resolution / DPR / GPU / network telemetry — the blur-diagnosis rows.
+    this.resNode = el('div', 'ow-perf-line', this.body, '');
+    this.gpuNode = el('div', 'ow-perf-line', this.body, '');
+    this.netNode = el('div', 'ow-perf-line', this.body, '');
     this.hintNode = el('div', 'ow-perf-hint', this.root, 'F3');
 
     this._applyMode();
@@ -155,7 +159,7 @@ export class PerfHud {
    *   keeps updating at a fixed rate even when `time.scale` is 0)
    * @param {import('../core/perf.js').Perf} perf
    */
-  update(rawDt, perf) {
+  update(rawDt, perf, extra = null) {
     if (this.mode === 'off' || !perf) return;
     const live = perf.live;
 
@@ -202,6 +206,27 @@ export class PerfHud {
       const h = s.hitches;
       setText(this.hitchNode, `hitch ${h.count} (${h.pctOfFrames}%) worst ${h.worstMs} ms · x${live.substeps} sub`);
       setClass(this.hitchNode, 'ow-perf-alert', h.count > 0);
+
+      // Blur-diagnosis rows. `rt` (internal render target) vs `bb` (backbuffer)
+      // vs `css` (window) tells dynamic-resolution apart from DPR apart from CSS
+      // stretch at a glance.
+      const st = extra?.stats;
+      if (st) {
+        setText(
+          this.resNode,
+          `${extra.preset}${extra.auto ? ' (auto)' : ''} · scale ${Math.round(st.scale * 100)}%` +
+            `${st.budgetLimited ? '*' : ''} · rt ${st.rtW}x${st.rtH} · bb ${st.bbW}x${st.bbH}`
+        );
+        setText(
+          this.gpuNode,
+          `css ${extra.css} · dpr ${(+st.dpr).toFixed(2)}/${(+st.cap).toFixed(2)}` +
+            (st.gpu ? ` · ${st.gpu.slice(0, 42)}` : '')
+        );
+      } else {
+        setText(this.resNode, '');
+        setText(this.gpuNode, '');
+      }
+      setText(this.netNode, extra?.tickHz ? `net ${extra.tickHz} Hz tick` : '');
 
       this._drawGraph(perf, s);
     }

@@ -54,7 +54,14 @@ const lockstep = capture && params.get('lockstep') === '1';
 // benchmarks and playtest harnesses.
 const matchFlow = !capture && params.get('match') !== '0';
 
-const explicitQuality = params.get('q');
+// Cinematic / content-creator mode: `?cinematic=1` (optionally with `?q=ultra`)
+// forces maximum fidelity for trailers, screenshots and marketing footage. It
+// pins the Ultra preset, disables the adaptive resolution scaler, allows DPR up
+// to 2.0, renders at native scale, and removes the on-screen touch controls. The
+// real game HUD is kept; only the perf counter is hidden by default. NEVER auto-
+// enabled for normal players — it is opt-in via the URL.
+const cinematic = ['1', 'true'].includes(params.get('cinematic'));
+const explicitQuality = params.get('q') ?? (cinematic ? 'ultra' : null);
 let graphics = loadGraphicsSettings();
 const initialBoot = resolveGraphicsBoot({ capture, explicitQuality, settings: graphics });
 if (initialBoot.enabled && graphics.mode === 'auto') {
@@ -78,7 +85,7 @@ const { enabled: adaptiveEnabled, quality: bootQuality } = resolveGraphicsBoot({
 const controls = capture ? { ...DEFAULT_CONTROLS } : loadControlSettings();
 // Touch mode never applies to a capture: the pixel gate frames a desktop HUD,
 // and an overlay of thumb controls in every baseline would be a visual change.
-const touchMode = !capture && detectTouchMode(params);
+const touchMode = !capture && !cinematic && detectTouchMode(params);
 // Menus (the lobby, the pause panel, the net overlay) read this class to grow
 // hit targets and drop keyboard hints; it is set before any UI exists.
 document.body.classList.toggle('wm-touch', touchMode);
@@ -99,6 +106,18 @@ const config = createConfig({
 });
 if (adaptiveEnabled && graphics.mode === 'auto' && graphics.calibrated)
   config.q.renderScale = graphics.renderScale;
+
+// Cinematic pins fidelity: max Retina DPR, native internal resolution, no
+// dynamic downscale (the adaptive scaler is already off because a `?q=`/forced
+// quality sets adaptiveEnabled=false). A global flag lets the UI hide the perf
+// counter while keeping the real HUD.
+if (cinematic) {
+  config.q.pixelRatioCap = 2;
+  config.q.renderScale = 1;
+  config.q.minRenderScale = 1;
+  config.q.maxRenderScale = 1;
+  globalThis.__NS_CINEMATIC__ = true;
+}
 
 // Advanced per-option overrides go on LAST, over both the preset and whatever
 // the adaptive scaler last settled on — they are the most specific thing the

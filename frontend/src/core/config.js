@@ -54,9 +54,12 @@ const SHARED = {
 export const QUALITY_PRESETS = {
   performance: {
     ...SHARED,
-    renderScale: 0.3,
-    minRenderScale: 0.2,
-    maxRenderScale: 0.3,
+    // Emergency floor for the weakest devices. Even here we keep a legible
+    // internal buffer rather than the old 0.3 mush — sharp gameplay beats FPS.
+    pixelRatioCap: 1.0,
+    renderScale: 0.6,
+    minRenderScale: 0.6,
+    maxRenderScale: 0.72,
     shadows: true,
     shadowQuality: -1,
     shadowMapSize: 512,
@@ -85,8 +88,11 @@ export const QUALITY_PRESETS = {
   },
   low: {
     ...SHARED,
-    renderScale: 0.72,
-    minRenderScale: 0.5,
+    // Typical for weaker mobile GPUs. Floor kept high (0.75) so the frame never
+    // becomes excessively soft — reduce effects before resolution.
+    pixelRatioCap: 1.25,
+    renderScale: 0.77,
+    minRenderScale: 0.75,
     maxRenderScale: 1,
     shadows: true,
     shadowQuality: 0,
@@ -110,8 +116,10 @@ export const QUALITY_PRESETS = {
   },
   medium: {
     ...SHARED,
+    // Modern smartphone / integrated laptop. 1.5x DPR on Retina, 0.8 floor.
+    pixelRatioCap: 1.5,
     renderScale: 0.85,
-    minRenderScale: 0.7,
+    minRenderScale: 0.8,
     maxRenderScale: 1,
     shadows: true,
     shadowQuality: 1,
@@ -135,8 +143,10 @@ export const QUALITY_PRESETS = {
   },
   high: {
     ...SHARED,
+    // Desktop / gaming laptop. DPR up to 1.5x, internal buffer never below 0.85.
+    pixelRatioCap: 1.5,
     renderScale: 1.0,
-    minRenderScale: 0.8,
+    minRenderScale: 0.85,
     maxRenderScale: 1,
     shadows: true,
     shadowQuality: 2,
@@ -160,8 +170,11 @@ export const QUALITY_PRESETS = {
   },
   ultra: {
     ...SHARED,
+    // Strong gaming GPU. Draws every physical pixel on a Retina panel (2.0x DPR)
+    // and holds a near-native internal buffer (0.9 floor) for maximum sharpness.
+    pixelRatioCap: 2.0,
     renderScale: 1.0,
-    minRenderScale: 0.85,
+    minRenderScale: 0.9,
     maxRenderScale: 1,
     shadows: true,
     shadowQuality: 3,

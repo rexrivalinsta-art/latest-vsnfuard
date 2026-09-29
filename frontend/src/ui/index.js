@@ -377,7 +377,16 @@ export class UiSystem {
   _perfOpts() {
     const p = new URLSearchParams(location.search);
     const raw = p.get('fps');
-    const mode = raw === '0' ? 'off' : raw === '1' ? 'full' : PERF_MODES.includes(raw) ? raw : 'full';
+    const mode =
+      raw === '0'
+        ? 'off'
+        : raw === '1'
+          ? 'full'
+          : PERF_MODES.includes(raw)
+            ? raw
+            : globalThis.__NS_CINEMATIC__
+              ? 'off'
+              : 'full';
     const pos = p.get('fpspos');
     const target = Number(p.get('fpstarget'));
     return {
@@ -386,6 +395,29 @@ export class UiSystem {
       target: Number.isFinite(target) && target > 0 ? target : 60,
     };
   }
+
+  /**
+   * Extra debug telemetry for the perf HUD's full mode: the active graphics
+   * preset, internal render-target resolution, backbuffer resolution, CSS size,
+   * DPR (effective / cap), GPU renderer and network tick rate. This is exactly
+   * what a "why is it blurry?" investigation needs — it tells DPR apart from
+   * dynamic-resolution apart from CSS stretch apart from GPU. Only computed in
+   * full mode, so it costs nothing when the HUD is mini/off.
+   */
+  _perfExtra(ctx) {
+    if (!this.perf || this.perf.mode !== 'full') return null;
+    const r = ctx.peek('render');
+    const stats = r?.rendererStats?.() ?? null;
+    const net = ctx.peek('net');
+    return {
+      preset: ctx.config?.quality ?? '',
+      auto: ctx.config?.graphicsMode === 'auto',
+      css: `${Math.round(globalThis.innerWidth || 0)}x${Math.round(globalThis.innerHeight || 0)}`,
+      stats,
+      tickHz: net?.tickHz ?? null,
+    };
+  }
+
 
   _weaponState() {
     const w = this.ctx.peek('weapons');
@@ -577,7 +609,7 @@ export class UiSystem {
     // is paused (time.scale 0) — which is when you most want to read them.
     if (this.perf) {
       if (ctx.input.enabled && ctx.input.pressed('F3')) this.perf.cycle();
-      this.perf.update(rawDt, ctx.perf);
+      this.perf.update(rawDt, ctx.perf, this._perfExtra(ctx));
     }
 
     // ---- pause -----------------------------------------------------------

@@ -120,9 +120,9 @@ export const GRAPHICS_OPTIONS = [
     group: 'display',
     kind: 'enum',
     restart: false,
-    hint: 'Ceiling on the backbuffer’s device-pixel ratio. Auto stops at 1.5x, which throws away a third of a Retina panel; 2.0x draws every physical pixel.',
+    hint: 'Ceiling on the backbuffer’s device-pixel ratio. Auto now follows the preset (High caps at 1.5x, Ultra at 2.0x — every physical Retina pixel). 2.0x is the sharpest on a Retina panel.',
     values: vals([
-      [AUTO, 'Auto (1.5x cap)'],
+      [AUTO, 'Auto (follows preset)'],
       [1, '1.0x'],
       [1.25, '1.25x'],
       [1.5, '1.5x'],

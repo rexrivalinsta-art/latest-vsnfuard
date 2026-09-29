@@ -285,6 +285,17 @@ export class RenderSystem {
           gl.getParameter(gl.MAX_RENDERBUFFER_SIZE) || 4096
         )
       );
+      // Unmasked GPU string, captured once for the debug HUD so a "why is it
+      // blurry?" report can name the actual adapter. Gated behind the debug
+      // extension in most browsers; falls back to the generic RENDERER string.
+      try {
+        const dbg = gl.getExtension('WEBGL_debug_renderer_info');
+        this._gpuName = String(
+          dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER) || ''
+        );
+      } catch {
+        this._gpuName = '';
+      }
     }
     /** True while the pixel budget or the device limit is actually binding. */
     this.budgetLimited = false;
@@ -1129,6 +1140,27 @@ export class RenderSystem {
 
   get renderScale() {
     return this._renderScale;
+  }
+
+  /**
+   * Snapshot for the debug HUD. Distinguishes every input to perceived
+   * sharpness: `rt` is the internal render-target (dynamic resolution), `bb` is
+   * the backbuffer (window x effective DPR), `dpr`/`cap` is the pixel-ratio
+   * story, and `gpu` names the adapter. If `bb` is ~1920x1080 on a 1080p screen
+   * but `rt` is 960x540, the softness is dynamic resolution, not CSS stretch.
+   */
+  rendererStats() {
+    return {
+      bbW: this.displaySize?.width | 0,
+      bbH: this.displaySize?.height | 0,
+      rtW: this.screenSize?.width | 0,
+      rtH: this.screenSize?.height | 0,
+      dpr: this.renderer?.getPixelRatio?.() ?? 1,
+      cap: this._pixelRatioCap ?? 1.5,
+      scale: this._renderScale ?? 1,
+      gpu: this._gpuName || '',
+      budgetLimited: !!this.budgetLimited,
+    };
   }
 
   /** The two absolute limits, as `fitToBudget` wants them. */
