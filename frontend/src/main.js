@@ -13,6 +13,15 @@
  */
 const renderGame = !['false', '0'].includes(new URLSearchParams(location.search).get('renderGame'));
 
+// Quick graphics-quality picker (AUTO / LOW / MED / HIGH / ULTRA) pinned to the
+// top corner of the menu. Mounted on BOTH phone and PC and on both boot paths;
+// it only imports the tiny core settings helpers, never the engine, so it does
+// not undo the lazy-dispatch this file exists for. It shows once the menu shell
+// is on screen (body.ns-shell-open) and reloads into the chosen pipeline.
+import('./ui/quickquality.js')
+  .then((m) => m.mountQuickQuality())
+  .catch(() => {});
+
 if (renderGame) {
   await import('./boot.js');
 } else {
