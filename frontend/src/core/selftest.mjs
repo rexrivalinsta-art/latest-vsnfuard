@@ -147,7 +147,7 @@ check('performance tier exposes the aggressive Auto pipeline contract', () => {
     },
     {
       // Sharpness-first floors: even the emergency tier keeps a legible buffer.
-      renderScale: 0.6,
+      renderScale: 0.5,
       maxRenderScale: 0.72,
       shadows: true,
       shadowQuality: -1,
@@ -295,7 +295,7 @@ await checkAsync('calibrates once, persists the tier, and reloads when the pipel
   system.lateUpdate(0, ctx); // measurement window: 240 fresh frames
 
   assert.equal(loadGraphicsSettings(storage).tier, 'low');
-  assert.equal(loadGraphicsSettings(storage).renderScale, 0.75);
+  assert.equal(loadGraphicsSettings(storage).renderScale, 0.7);
   // Immediate, unlike the live walk-down: the calibration scrim blocks play,
   // so there is no fight to interrupt and no death to wait for.
   assert.equal(reloads, 1);
@@ -437,7 +437,7 @@ await checkAsync('demotes a limited Auto pipeline and reloads at the next tier',
 
   const saved = loadGraphicsSettings(storage);
   assert.equal(saved.tier, 'performance');
-  assert.equal(saved.renderScale, 0.6);
+  assert.equal(saved.renderScale, 0.5);
   assert.equal(saved.tierCeiling, 'performance', 'the demotion caps future promotion');
   assert.equal(system.getStatus().state, 'reload-pending');
   assert.equal(reloads, 0, 'no reload under the player mid-match');

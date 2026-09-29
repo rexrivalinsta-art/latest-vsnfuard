@@ -707,7 +707,18 @@ const CSS = `
   /* Fixed and above everything: the panel is mounted on the shared #ui host,
      outside .ow-hud, so it can cover the lobby (z-index 60) too. */
   position:fixed; inset:0; z-index:80; pointer-events:auto;
-  display:grid; place-items:center; padding: 24px;
+  /* iOS Safari sizes inset:0 to the LARGE viewport (behind the address/tool
+     bars), so on a landscape phone the centred panel's bottom fell below the
+     visible fold and the inner list never got to scroll. 100dvh pins us to the
+     VISIBLE viewport; the safe-area insets keep the panel clear of the notch and
+     the home indicator. */
+  height: 100vh; height: 100dvh;
+  display:grid; place-items:center;
+  padding:
+    max(12px, env(safe-area-inset-top))
+    max(12px, env(safe-area-inset-right))
+    max(12px, env(safe-area-inset-bottom))
+    max(12px, env(safe-area-inset-left));
   background: rgb(var(--wm-void-rgb) / .82);
   backdrop-filter: blur(10px) saturate(.85);
   opacity:0; will-change: opacity;
@@ -743,7 +754,7 @@ const CSS = `
   transition: color var(--wm-t), border-color var(--wm-t);
 }
 .ow-x:hover { color: var(--wm-fg); border-color: var(--wm-accent); }
-.ow-menu-bd { padding: 4px 20px 14px; overflow-y:auto; flex: 1 1 auto; min-height:0; }
+.ow-menu-bd { padding: 4px 20px 14px; overflow-y:auto; flex: 1 1 auto; min-height:0; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y; }
 .ow-menu-ft { flex:none; padding: 14px 20px 16px; border-top: 1px solid var(--wm-border); }
 
 /* Tab strip for the advanced graphics groups. Pinned between the header and the

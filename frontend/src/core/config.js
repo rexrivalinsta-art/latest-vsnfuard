@@ -57,8 +57,8 @@ export const QUALITY_PRESETS = {
     // Emergency floor for the weakest devices. Even here we keep a legible
     // internal buffer rather than the old 0.3 mush — sharp gameplay beats FPS.
     pixelRatioCap: 1.0,
-    renderScale: 0.6,
-    minRenderScale: 0.6,
+    renderScale: 0.5,
+    minRenderScale: 0.5,
     maxRenderScale: 0.72,
     shadows: true,
     shadowQuality: -1,
@@ -91,8 +91,8 @@ export const QUALITY_PRESETS = {
     // Typical for weaker mobile GPUs. Floor kept high (0.75) so the frame never
     // becomes excessively soft — reduce effects before resolution.
     pixelRatioCap: 1.25,
-    renderScale: 0.77,
-    minRenderScale: 0.75,
+    renderScale: 0.7,
+    minRenderScale: 0.55,
     maxRenderScale: 1,
     shadows: true,
     shadowQuality: 0,
@@ -118,8 +118,8 @@ export const QUALITY_PRESETS = {
     ...SHARED,
     // Modern smartphone / integrated laptop. 1.5x DPR on Retina, 0.8 floor.
     pixelRatioCap: 1.5,
-    renderScale: 0.85,
-    minRenderScale: 0.8,
+    renderScale: 0.8,
+    minRenderScale: 0.65,
     maxRenderScale: 1,
     shadows: true,
     shadowQuality: 1,
@@ -146,7 +146,7 @@ export const QUALITY_PRESETS = {
     // Desktop / gaming laptop. DPR up to 1.5x, internal buffer never below 0.85.
     pixelRatioCap: 1.5,
     renderScale: 1.0,
-    minRenderScale: 0.85,
+    minRenderScale: 0.8,
     maxRenderScale: 1,
     shadows: true,
     shadowQuality: 2,
@@ -174,7 +174,7 @@ export const QUALITY_PRESETS = {
     // and holds a near-native internal buffer (0.9 floor) for maximum sharpness.
     pixelRatioCap: 2.0,
     renderScale: 1.0,
-    minRenderScale: 0.9,
+    minRenderScale: 0.85,
     maxRenderScale: 1,
     shadows: true,
     shadowQuality: 3,

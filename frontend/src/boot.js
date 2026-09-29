@@ -62,8 +62,30 @@ const matchFlow = !capture && params.get('match') !== '0';
 // enabled for normal players — it is opt-in via the URL.
 const cinematic = ['1', 'true'].includes(params.get('cinematic'));
 const explicitQuality = params.get('q') ?? (cinematic ? 'ultra' : null);
+// Performance-first AUTO: a fresh Auto profile boots on a LIGHTER tier on phones
+// / touch devices ('low') than on desktop ('medium'), so the very first frames a
+// weak GPU renders are cheap, calibration measures from there, and the live
+// scaler can climb only if there is real headroom. This is the "smooth 60 first,
+// upgrade later" default the player asked for; they can still pick any tier.
+const coarsePointer = (() => {
+  try {
+    return (
+      !!globalThis.matchMedia?.('(pointer: coarse)')?.matches ||
+      'ontouchstart' in globalThis ||
+      (globalThis.navigator?.maxTouchPoints ?? 0) > 0
+    );
+  } catch {
+    return false;
+  }
+})();
+const autoFallbackTier = coarsePointer ? 'low' : 'medium';
 let graphics = loadGraphicsSettings();
-const initialBoot = resolveGraphicsBoot({ capture, explicitQuality, settings: graphics });
+const initialBoot = resolveGraphicsBoot({
+  capture,
+  explicitQuality,
+  settings: graphics,
+  fallbackTier: autoFallbackTier,
+});
 if (initialBoot.enabled && graphics.mode === 'auto') {
   const signature = detectDeviceSignature();
   const refreshHz =
@@ -79,6 +101,7 @@ const { enabled: adaptiveEnabled, quality: bootQuality } = resolveGraphicsBoot({
   capture,
   explicitQuality,
   settings: graphics,
+  fallbackTier: autoFallbackTier,
 });
 // Capture runs must not inherit whatever aim style a previous session saved,
 // or a scripted ADS shot could come back hip-fired.

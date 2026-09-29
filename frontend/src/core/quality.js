@@ -161,11 +161,12 @@ export function prepareAutoSettings(settings, { signature, refreshHz }) {
   };
 }
 
-export function resolveGraphicsBoot({ capture = false, explicitQuality = null, settings }) {
+export function resolveGraphicsBoot({ capture = false, explicitQuality = null, settings, fallbackTier = 'medium' }) {
   const enabled = !capture && !explicitQuality;
+  const tierFallback = TIER_ORDER.includes(fallbackTier) ? fallbackTier : 'medium';
   const quality =
     explicitQuality ??
-    (!enabled ? 'ultra' : settings.mode === 'auto' ? settings.tier ?? 'medium' : settings.mode);
+    (!enabled ? 'ultra' : settings.mode === 'auto' ? settings.tier ?? tierFallback : settings.mode);
   return { enabled, quality };
 }
 
