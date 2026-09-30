@@ -419,6 +419,16 @@ export class AdaptiveQualitySystem {
     this.ctx = null;
     this._unsubs = [];
     this._reloadPending = false;
+    /**
+     * Tier changes reload the page (the pipeline is built once at init). To stop
+     * the "menu keeps refreshing / Quick Play keeps reloading" loop the user hit,
+     * AUTO now reloads for a tier change at most ONCE per page session, and only
+     * at a real gameplay boundary — never just because the player is idle at a
+     * menu/lobby. The live render-scale scaler holds the frame-rate target
+     * regardless, so staying one tier off between reloads costs nothing but a
+     * little sharpness.
+     */
+    this._autoReloadsUsed = 0;
     this._deferredReload = false;
     this._demotedThisSession = false;
     this._promoteSinceMs = null;
@@ -629,6 +639,7 @@ export class AdaptiveQualitySystem {
       // path would wait on a death that cannot happen behind the blocker.
       this._status.state = 'reloading';
       this._reloadPending = true;
+      this._autoReloadsUsed += 1;
       this.location?.reload?.();
       return;
     }
@@ -680,9 +691,15 @@ export class AdaptiveQualitySystem {
     this._requestReload();
   }
 
-  /** Ask for a reload at the next safe boundary; immediate if already at one. */
+  /** Ask for a reload at the next safe boundary; capped at one per session. */
   _requestReload() {
     if (this._reloadPending || this._deferredReload) return;
+    // Hard cap: at most one auto tier-reload per page session (calibration's
+    // reload counts). A device that keeps re-scoring itself must never keep
+    // reloading the player out of the menu / match — the live render-scale
+    // scaler holds the frame-rate target without a reload. This is the fix for
+    // "the menu keeps refreshing / Quick Play keeps reloading".
+    if (this._autoReloadsUsed >= 1) return;
     this._deferredReload = true;
     this._status.state = 'reload-pending';
     if (!this.ctx || !this.isActive(this.ctx)) this._fireDeferredReload();
@@ -693,6 +710,7 @@ export class AdaptiveQualitySystem {
     if (!this._deferredReload || this._reloadPending) return;
     this._deferredReload = false;
     this._reloadPending = true;
+    this._autoReloadsUsed += 1;
     this._status.state = 'reloading';
     this._log('reloading into the persisted profile');
     this.location?.reload?.();
